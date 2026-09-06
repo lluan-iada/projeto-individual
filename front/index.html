@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Lista de Animes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Minha Lista de Animes</h1>
+        <p>Registre os animes que você assistiu</p>
+    </header>
+
+    <main>
+
+        <section class="formulario">
+            <h2>Cadastrar Anime</h2>
+            <form id="form-anime">
+
+                <div class="input">
+                    <label for="titulo">Título:</label>
+                    <input type="text" id="titulo" placeholder="Ex: Dragon Ball Z" required>
+                </div>
+
+                <div class="input">
+                    <label for="episodios">Episódios:</label>
+                    <input type="number" id="episodios" min="1" placeholder="Ex: 220" required>
+                </div>
+
+                <div class="input">
+                    <label for="dataConclusao">Data de conclusão:</label>
+                    <input type="date" id="dataConclusao" required>
+                </div>
+
+                <div class="input">
+                    <label for="nota">Nota:</label>
+                    <input type="number" id="nota" min="0" max="10" step="0.1" placeholder="Ex: 8.5" required>
+                </div>
+
+                <div class="input">
+                    <label>Status:</label>
+                    <div class="radios">
+                        <label>
+                            <input type="radio" name="status" value="Finalizado" required>
+                            Finalizado
+                        </label>
+                        <label>
+                            <input type="radio" name="status" value="Assistindo">
+                            Assistindo
+                        </label>
+                        <label>
+                            <input type="radio" name="status" value="Pausado">
+                            Pausado
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input">
+                    <label for="genero">Gênero:</label>
+                    <select id="genero" required>
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+
+                <button type="submit">
+                    Cadastrar Anime
+                </button>
+
+            </form>
+        </section>
+
+        <section class="lista">
+            <h2>Animes Cadastrados</h2>
+            <div id="lista-animes">
+                <p>Carregando animes...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const API_URL = "http://localhost:8080/animes";
+        let animes = [];
+
+        async function carregarGeneros() {
+
+            try {
+                const resposta = await fetch(`${API_URL}/generos`);
+
+                if (!resposta.ok) {
+                    throw new Error("Erro ao buscar gêneros");
+                }
+
+                const generos = await resposta.json();
+                const select = document.getElementById("genero");
+
+                select.innerHTML =
+                    '<option value="" disabled selected >Selecione um gênero...</option>';
+
+                generos.forEach(genero => {
+                    const option = document.createElement("option");
+
+                    option.value = genero;
+                    option.textContent = genero;
+                    select.appendChild(option);
+
+                });
+
+            } catch (erro) {
+                console.error("Erro ao carregar gêneros:", erro);
+
+            }
+
+        }
+
+        async function carregarAnimes() {
+
+            try {
+                const resposta = await fetch(API_URL);
+
+                if (!resposta.ok) {
+                    throw new Error("Erro ao buscar animes");
+                }
+
+                animes = await resposta.json();
+                renderizarAnimes(animes);
+
+            } catch (erro) {
+
+                console.error("Erro ao buscar animes:", erro);
+                document.getElementById("lista-animes").innerHTML =
+                    "<p>Não foi possível carregar os animes.</p>";
+
+            }
+
+        }
+
+        function renderizarAnimes(lista) {
+
+            const container = document.getElementById("lista-animes");
+            container.innerHTML = "";
+
+            if (lista.length === 0) {
+                container.innerHTML =
+                    "<p>Nenhum anime cadastrado.</p>";
+                return;
+
+            }
+
+            lista.forEach(anime => {
+                const card = document.createElement("div");
+                card.className = "card";
+                let data = anime.dataConclusao;
+
+                if (data) {
+                    const partes = data.split("-");
+                    data =
+                        `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+                }
+
+                card.innerHTML = `
+                    ${anime.imagemUrl
+                        ? `<img src="${anime.imagemUrl}" alt="${anime.titulo}">`
+                        : ""
+                    }
+
+                    <h3>${anime.titulo}</h3>
+                    <p>
+                        <strong>Episódios:</strong>
+                        ${anime.episodios}
+                    </p>
+
+                    <p>
+                        <strong>Nota:</strong>
+                        ${anime.nota}
+                    </p>
+
+                    <p>
+                        <strong>Gênero:</strong>
+                        ${anime.genero}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong>
+                        ${anime.status}
+                    </p>
+
+                    <p>
+                        <strong>Conclusão:</strong>
+                        ${data}
+                    </p>
+
+                `;
+
+                container.appendChild(card);
+
+            });
+
+        }
+
+        document
+            .getElementById("form-anime")
+            .addEventListener("submit", async function (evento) {
+
+                evento.preventDefault();
+
+                const titulo =
+                    document.getElementById("titulo").value.trim();
+
+                const episodios =
+                    parseInt(document.getElementById("episodios").value);
+
+                const dataConclusao =
+                    document.getElementById("dataConclusao").value;
+
+                const nota =
+                    parseFloat(document.getElementById("nota").value);
+
+                const status =
+                    document.querySelector(
+                        'input[name="status"]:checked'
+                    )?.value;
+
+                const genero =
+                    document.getElementById("genero").value;
+
+
+                if (!titulo) {
+                    alert("Informe o título.");
+                    return;
+                }
+
+                if (episodios <= 0) {
+                    alert("O número de episódios deve ser maior que 0.");
+                    return;
+                }
+
+                if (nota < 0 || nota > 10) {
+                    alert("A nota deve estar entre 0 e 10.");
+                    return;
+                }
+
+                if (!status) {
+                    alert("Selecione um status.");
+                    return;
+                }
+
+                if (!genero) {
+                    alert("Selecione um gênero.");
+                    return;
+                }
+
+                let imagemUrl = null;
+
+                /* try {
+                    const busca =
+                        await fetch(
+                            `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(titulo)}&limit=1`
+                        );
+
+                    const dados = await busca.json();
+                    if (dados.data && dados.data.length > 0) {
+                        imagemUrl =
+                            dados.data[0].images.jpg.image_url;
+
+                    }
+
+                } catch (erro) {
+                    console.error(
+                        "Não foi possível buscar a imagem:",
+                        erro
+                    );
+
+                }
+*/
+                const novoAnime = {
+                    titulo: titulo,
+                    episodios: episodios,
+                    dataConclusao: dataConclusao,
+                    nota: nota,
+                    status: status,
+                    genero: genero,
+                    imagemUrl: imagemUrl
+
+                };
+
+
+                try {
+                    const resposta =
+                        await fetch(API_URL, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(novoAnime)
+
+                        });
+
+
+                    if (resposta.status === 201) {
+                        alert("Anime cadastrado com sucesso!");
+                        this.reset();
+                        carregarAnimes();
+
+                    } else if (resposta.status === 409) {
+                        alert(
+                            "Já existe um anime com esse título."
+                        );
+
+                    } else if (resposta.status === 400) {
+                        alert(
+                            "Dados inválidos. Verifique os campos."
+                        );
+
+                    } else {
+                        alert(
+                            "Erro ao cadastrar anime."
+                        );
+
+                    }
+
+                } catch (erro) {
+                    console.error(
+                        "Erro na requisição:",
+                        erro
+                    );
+
+                    alert(
+                        "Não foi possível conectar ao servidor."
+                    );
+                }
+
+            });
+
+
+        window.onload = function () {
+            carregarGeneros();
+            carregarAnimes();
+
+        };
+
+    </script>
+</body>
+
+</html>
