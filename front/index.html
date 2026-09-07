@@ -75,6 +75,12 @@
 
         <section class="lista">
             <h2>Animes Cadastrados</h2>
+            <label for="filtro-genero">Filtrar por gênero:</label>
+
+            <select id="filtro-genero">
+                <option value="todos">Todos</option>
+            </select>
+
             <div id="lista-animes">
                 <p>Carregando animes...</p>
             </div>
@@ -83,45 +89,50 @@
     </main>
 
     <script>
+
         const API_URL = "http://localhost:8080/animes";
         let animes = [];
+
 
         async function carregarGeneros() {
 
             try {
-                const resposta = await fetch(`${API_URL}/generos`);
-
+                const resposta = await fetch(API_URL + "/generos");
                 if (!resposta.ok) {
                     throw new Error("Erro ao buscar gêneros");
                 }
 
                 const generos = await resposta.json();
                 const select = document.getElementById("genero");
-
                 select.innerHTML =
-                    '<option value="" disabled selected >Selecione um gênero...</option>';
+                    '<option value="" disabled selected>Selecione um gênero...</option>';
 
-                generos.forEach(genero => {
-                    const option = document.createElement("option");
+                const filtro = document.getElementById("filtro-genero");
 
-                    option.value = genero;
-                    option.textContent = genero;
-                    select.appendChild(option);
+                for (let genero of generos) {
+                    const opcao = document.createElement("option");
+                    opcao.value = genero;
+                    opcao.textContent = genero;
 
-                });
+                    select.appendChild(opcao);
+
+                    const opcaoFiltro = document.createElement("option");
+                    opcaoFiltro.value = genero;
+                    opcaoFiltro.textContent = genero;
+
+                    filtro.appendChild(opcaoFiltro);
+                }
 
             } catch (erro) {
                 console.error("Erro ao carregar gêneros:", erro);
-
             }
-
         }
 
+
         async function carregarAnimes() {
-
             try {
-                const resposta = await fetch(API_URL);
 
+                const resposta = await fetch(API_URL);
                 if (!resposta.ok) {
                     throw new Error("Erro ao buscar animes");
                 }
@@ -134,10 +145,9 @@
                 console.error("Erro ao buscar animes:", erro);
                 document.getElementById("lista-animes").innerHTML =
                     "<p>Não foi possível carregar os animes.</p>";
-
             }
-
         }
+
 
         function renderizarAnimes(lista) {
 
@@ -148,10 +158,10 @@
                 container.innerHTML =
                     "<p>Nenhum anime cadastrado.</p>";
                 return;
-
             }
 
             lista.forEach(anime => {
+
                 const card = document.createElement("div");
                 card.className = "card";
                 let data = anime.dataConclusao;
@@ -159,49 +169,67 @@
                 if (data) {
                     const partes = data.split("-");
                     data =
-                        `${partes[2]}/${partes[1]}/${partes[0]}`;
-
+                        partes[2] + "/" +
+                        partes[1] + "/" +
+                        partes[0];
                 }
 
                 card.innerHTML = `
-                    ${anime.imagemUrl
+                ${anime.imagemUrl
                         ? `<img src="${anime.imagemUrl}" alt="${anime.titulo}">`
                         : ""
                     }
 
-                    <h3>${anime.titulo}</h3>
-                    <p>
-                        <strong>Episódios:</strong>
-                        ${anime.episodios}
-                    </p>
+                <h3>${anime.titulo}</h3>
+                <p>
+                    <strong>Episódios:</strong>
+                    ${anime.episodios}
+                </p>
 
-                    <p>
-                        <strong>Nota:</strong>
-                        ${anime.nota}
-                    </p>
+                <p>
+                    <strong>Nota:</strong>
+                    ${anime.nota}
+                </p>
 
-                    <p>
-                        <strong>Gênero:</strong>
-                        ${anime.genero}
-                    </p>
+                <p>
+                    <strong>Gênero:</strong>
+                    ${anime.genero}
+                </p>
 
-                    <p>
-                        <strong>Status:</strong>
-                        ${anime.status}
-                    </p>
+                <p>
+                    <strong>Status:</strong>
+                    ${anime.status}
+                </p>
 
-                    <p>
-                        <strong>Conclusão:</strong>
-                        ${data}
-                    </p>
-
-                `;
+                <p>
+                    <strong>Conclusão:</strong>
+                    ${data}
+                </p>
+            `;
 
                 container.appendChild(card);
+            });
+        }
 
+
+        document
+            .getElementById("filtro-genero")
+            .addEventListener("change", function () {
+
+                const genero = this.value;
+
+                if (genero === "todos") {
+                    renderizarAnimes(animes);
+
+                } else {
+
+                    const animesFiltrados = animes.filter(
+                        anime => anime.genero === genero
+                    );
+                    renderizarAnimes(animesFiltrados);
+                }
             });
 
-        }
 
         document
             .getElementById("form-anime")
@@ -213,13 +241,17 @@
                     document.getElementById("titulo").value.trim();
 
                 const episodios =
-                    parseInt(document.getElementById("episodios").value);
+                    parseInt(
+                        document.getElementById("episodios").value
+                    );
 
                 const dataConclusao =
                     document.getElementById("dataConclusao").value;
 
                 const nota =
-                    parseFloat(document.getElementById("nota").value);
+                    parseFloat(
+                        document.getElementById("nota").value
+                    );
 
                 const status =
                     document.querySelector(
@@ -236,22 +268,28 @@
                 }
 
                 if (episodios <= 0) {
-                    alert("O número de episódios deve ser maior que 0.");
+                    alert(
+                        "O número de episódios deve ser maior que 0."
+                    );
                     return;
                 }
 
                 if (nota < 0 || nota > 10) {
-                    alert("A nota deve estar entre 0 e 10.");
+                    alert(
+                        "A nota deve estar entre 0 e 10."
+                    );
                     return;
                 }
 
                 if (!status) {
                     alert("Selecione um status.");
+
                     return;
                 }
 
                 if (!genero) {
                     alert("Selecione um gênero.");
+
                     return;
                 }
 
@@ -286,20 +324,19 @@
                     status: status,
                     genero: genero,
                     imagemUrl: imagemUrl
-
                 };
 
 
                 try {
-                    const resposta =
-                        await fetch(API_URL, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify(novoAnime)
 
-                        });
+                    const resposta = await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(novoAnime)
+                    });
 
 
                     if (resposta.status === 201) {
@@ -321,7 +358,6 @@
                         alert(
                             "Erro ao cadastrar anime."
                         );
-
                     }
 
                 } catch (erro) {
@@ -341,7 +377,6 @@
         window.onload = function () {
             carregarGeneros();
             carregarAnimes();
-
         };
 
     </script>
