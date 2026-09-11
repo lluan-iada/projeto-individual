@@ -10,7 +10,9 @@ public class Anime {
     private Double nota;
     private String status;
     private String genero;
-    private String imagemUrl;
+    // private String imagemUrl;
+
+    // Havia pensado em colocar uma imagem com uma API externa do MyAnimeList, mas ela estava indisponivel
 
     public Anime() {
     }
@@ -24,7 +26,7 @@ public class Anime {
         this.nota = nota;
         this.status = status;
         this.genero = genero;
-        this.imagemUrl = imagemUrl;
+       // this.imagemUrl = imagemUrl;
     }
 
     public Integer getId() {
@@ -83,11 +85,11 @@ public class Anime {
         this.genero = genero;
     }
 
-    public String getImagemUrl() {
-        return imagemUrl;
-    }
-
-    public void setImagemUrl(String imagemUrl) {
-        this.imagemUrl = imagemUrl;
-    }
+//    public String getImagemUrl() {
+//        return imagemUrl;
+//    }
+//
+//    public void setImagemUrl(String imagemUrl) {
+//        this.imagemUrl = imagemUrl;
+//    }
 }
