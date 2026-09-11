@@ -50,6 +50,7 @@ projeto/
 │   │       │   └── com/projeto/individual/
 │   │       │       ├── Anime.java
 │   │       │       └── AnimeController.java
+│   │       │       └── IndividualApplication
 │   │       │
 │   │       └── resources/
 │   │           └── application.properties
@@ -92,14 +93,17 @@ cd Backend
 
 Execute:
 
+O projeto pode ser executado de duas formas:
+
+**Opção 1 — Maven**
+
 ```bash
 mvn spring-boot:run
 ```
 
-A API estará disponível em:
-
-```text
-http://localhost:8080
+**Opção 2 — IDE**
+```
+Execute diretamente a classe `IndividualApplication`.
 ```
 
 ### Front-end
